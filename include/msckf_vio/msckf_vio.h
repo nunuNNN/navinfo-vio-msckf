@@ -67,6 +67,10 @@ public:
     bool resetCallback(const Parameter_estimate_t &estimste_params,
                             const Parameter_extrinsic_t &extrinsic_params);
 
+    bool currFeatureInitCallback(std::vector<int> &init_ids,
+                        std::vector<Eigen::Vector2d> &init_obs,
+                        std::vector<Eigen::Vector3d> &init_pts);
+
 private:
     bool InitStaticParams(const Parameter_estimate_t &estimste_params,
                         const Parameter_extrinsic_t &extrinsic_params);
@@ -180,8 +184,10 @@ private:
     // Tracking rate
     double tracking_rate;
 
-    // std::deque<Feature_measure_t> feature_buffer;
-    int log_id;
+    // 记录当前帧已经完成初始化的点的信息
+    std::vector<int> curr_init_ids;
+    std::vector<Eigen::Vector2d> curr_init_obs;
+    std::vector<Eigen::Vector3d> curr_init_pts;
 
     Ground_truth_t curr_groundtruth;
 

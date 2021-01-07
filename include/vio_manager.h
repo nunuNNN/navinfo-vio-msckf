@@ -73,8 +73,13 @@ public:
                         const Eigen::Vector3d &p,
                         const Eigen::Quaterniond &q,
                         float covVx, float covVy, float covVz,
-                        uint8_t resetFlag,
-                        float harrisVal, float rate1, float rate2));
+                        uint8_t resetFlag,float rate1, float rate2),
+                        void (*PublishPoints)(
+                        uint64_t timestamp, 
+                        const std::vector<int> &curr_init_ids,
+                        const std::vector<Eigen::Vector2d> &curr_init_obs,
+                        const std::vector<Eigen::Vector3d> &curr_init_pts));
+
     static VioManager* getInstance();
 
     void ReleaseVioManager();

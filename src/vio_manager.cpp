@@ -20,8 +20,13 @@ using namespace Eigen;
 VioManager* VioManager::s_pInstance = NULL;
 // PublishCallback function
 void (*PublishCallbackVio)(uint64_t timestamp, const Vector3d &p,
-                        const Quaterniond &q, float covVx, float covVy, float covVz, uint8_t resetFlag,
-                        float harrisVal, float rate1, float rate2);
+                        const Quaterniond &q, float covVx, float covVy, float covVz, 
+                        uint8_t resetFlag, float rate1, float rate2);
+// CurrInitPtsCallback function
+void (*CurrInitPtsCallback)(uint64_t timestamp, 
+                        const std::vector<int> &curr_init_ids,
+                        const std::vector<Eigen::Vector2d> &curr_init_obs,
+                        const std::vector<Eigen::Vector3d> &curr_init_pts);
 
 ImageProcessorThread::ImageProcessorThread(
     const std::shared_ptr<msckf_vio::ImageProcessor>& p_image_processor)
@@ -107,7 +112,7 @@ bool MsckfVioThread::run()
     msckf_vio::Translation_velocity_t T_vel_out;
 
     p_msckf_vio->Process(curr_image_timestamp, 
-                            measure, // 显示复制还是直接赋值？
+                            measure,
                             feature_pvq.curr_from_last_imu,
                             groundtruth, 
                             T_vel_out);
@@ -118,7 +123,23 @@ bool MsckfVioThread::run()
     Eigen::Vector3d v_in_body = T_vel_out.T_w_b.linear().transpose() * v_in_world;
 
     PublishCallbackVio(curr_image_timestamp * 1e9, p_in_world, q_imu_f_world, 
-                        v_in_body.x(), v_in_body.y(), v_in_body.z(), 0, 0, 0, 0);
+                        v_in_body.x(), v_in_body.y(), v_in_body.z(), 0, 0, 0);
+
+    // 得到当前帧跟踪上已经完成初始化的点
+    std::vector<int> curr_init_ids;
+    std::vector<Eigen::Vector2d> curr_init_obs;
+    std::vector<Eigen::Vector3d> curr_init_pts;
+    
+    if(p_msckf_vio->currFeatureInitCallback(curr_init_ids,
+                                        curr_init_obs,
+                                        curr_init_pts))
+    {
+        // TODO : 判断得到的三个变量长度是否相等
+
+        CurrInitPtsCallback(curr_image_timestamp * 1e9, curr_init_ids,
+                            curr_init_obs, curr_init_pts);
+    }
+    
 
     // cout << "t_msckf_vio run time is : " << t_msckf_vio.toc() << endl;
     return true;
@@ -149,12 +170,17 @@ void VioManager::InitVioManager(void (*PublishVIO)(
                                     const Eigen::Vector3d &p,
                                     const Eigen::Quaterniond &q,
                                     float covVx, float covVy, float covVz,
-                                    uint8_t resetFlag,
-                                    float harrisVal, float rate1, float rate2))
+                                    uint8_t resetFlag, float rate1, float rate2),
+                                void (*PublishPoints)(
+                                    uint64_t timestamp, 
+                                    const std::vector<int> &curr_init_ids,
+                                    const std::vector<Eigen::Vector2d> &curr_init_obs,
+                                    const std::vector<Eigen::Vector3d> &curr_init_pts))
 {
     /************************* out put *************************/
     PublishCallbackVio = PublishVIO;
 
+    CurrInitPtsCallback = PublishPoints;
 
     /************************** VIO ****************************/
     p_image_processor.reset(new msckf_vio::ImageProcessor());

@@ -487,6 +487,12 @@ void MsckfVio::addFeatureObservations(const Feature_measure_t &msg)
 {
     StateIDType state_id = state_server.imu_state.id;
     int curr_feature_num = map_server.size();
+
+    // 清除上一帧的完成初始化点的信息
+    curr_init_ids.clear();
+    curr_init_obs.clear();
+    curr_init_pts.clear();
+
     int tracked_feature_num = 0;
     // Add new observations for existing features or new
     // features in the map server.
@@ -503,6 +509,14 @@ void MsckfVio::addFeatureObservations(const Feature_measure_t &msg)
             // This is an old feature.
             map_server[feature.id].observations[state_id] = Vector2d(feature.u0, feature.v0);
             ++tracked_feature_num;
+
+            // 添加当前帧完成初始化点的信息
+            if(map_server[feature.id].is_initialized)
+            {
+                curr_init_ids.push_back(feature.id);
+                curr_init_obs.push_back(Vector2d(feature.u0, feature.v0));
+                curr_init_pts.push_back(map_server[feature.id].position);
+            }
         }
     }
 
@@ -1097,6 +1111,25 @@ bool MsckfVio::resetCallback(const Parameter_estimate_t &estimste_params,
     InitStaticParams(estimste_params, extrinsic_params);
 
     b_init_finish = false;
+
+    return true;
+}
+
+bool MsckfVio::currFeatureInitCallback(std::vector<int> &init_ids,
+                                std::vector<Eigen::Vector2d> &init_obs,
+                                std::vector<Eigen::Vector3d> &init_pts)
+{
+    // 没有初始化的点，输出为false
+    if(curr_init_ids.empty() ||
+        curr_init_obs.empty() ||
+        curr_init_pts.empty())
+    {
+        return false;
+    }
+
+    init_ids = curr_init_ids;
+    init_obs = curr_init_obs;
+    init_pts = curr_init_pts;
 
     return true;
 }

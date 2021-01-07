@@ -326,7 +326,7 @@ void PubImageData()
                                                 right_image_rectified,
                                                 Mat());
 
-        usleep(500 * 1000);
+        usleep(100 * 1000);
     }
     fsImage.close();
 }
@@ -336,8 +336,7 @@ void PublishMsckfVio(
     const Eigen::Vector3d &p,
     const Eigen::Quaterniond &q,
     float covVx, float covVy, float covVz,
-    uint8_t resetFlag,
-    float harrisVal, float rate1, float rate2)
+    uint8_t resetFlag, float rate1, float rate2)
 {
     // cout << "PublishMsckfVio timestamp: " << fixed << timestamp
     //      << " p: " << v_last_from_curr_in_last_imu.transpose()
@@ -358,6 +357,18 @@ void PublishMsckfVio(
                    << endl;
     last_publish_time = timestamp * 1e-9;
 }
+
+void PublishPoints(uint64_t timestamp, 
+        const std::vector<int> &curr_init_ids,
+        const std::vector<Eigen::Vector2d> &curr_init_obs,
+        const std::vector<Eigen::Vector3d> &curr_init_pts)
+{
+    // cout << "PublishPoints timestamp: " << fixed << timestamp << endl;
+    // cout << "ids size id : " << curr_init_ids.size() << endl;
+    // cout << "obs size id : " << curr_init_obs.size() << endl;
+    // cout << "pts size id : " << curr_init_pts.size() << endl;
+}
+
 
 int main()
 {
@@ -381,7 +392,7 @@ int main()
     // of_pose_output << "timestamp, px, py, pz, qx, qy, qz, qw" << endl;
 
     LoadConfigParam();
-    VISION_MsckfVio_Init(fx, cx, cy, baseline, PublishMsckfVio);
+    VISION_MsckfVio_Init(fx, cx, cy, baseline, PublishMsckfVio, PublishPoints);
 
     thread thd_pub_pose(PublishGroundTruth);
     thd_pub_pose.join();
