@@ -1,0 +1,10 @@
+<launch>
+
+  <node pkg="msckf_vio" type="ros_euroc" name="ros_euroc" output="screen" >        
+  </node>
+
+  <node pkg="rviz" type="rviz" name="rviz" 
+    args="-d $(find msckf_vio)/rviz/rviz_euroc_config.rviz" output="log">
+  </node> 
+
+</launch>

@@ -1,0 +1,15 @@
+*.so
+*.a
+.vscode/
+
+build_pc/build/
+build_pc/bin/
+build_pc/lib/
+
+build_hisi/build/
+build_hisi/bin/
+build_hisi/lib/
+
+build_sim/build/
+build_sim/bin/
+

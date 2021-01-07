@@ -1,0 +1,62 @@
+# Camera calibration and distortion parameters (OpenCV) 
+fx: 435.2046959714599
+fy: 435.2046959714599
+cx: 367.4517211914062
+cy: 252.2008514404297
+
+k1: 0.0
+k2: 0.0
+p1: 0.0
+p2: 0.0
+
+width: 752
+height: 480
+
+# Camera frames per second 
+fps: 20.0
+
+# stereo baseline times fx
+bf: 47.90639384423901
+
+# Color order of the images (0: BGR, 1: RGB. It is ignored if images are grayscale)
+RGB: 1
+
+# Close/Far threshold. Baseline times.
+ThDepth: 35
+
+#--------------------------------------------------------------------------------------------
+# ORB Parameters
+#--------------------------------------------------------------------------------------------
+
+# ORB Extractor: Number of features per image
+nFeatures: 600
+
+# ORB Extractor: Scale factor between levels in the scale pyramid 	
+scaleFactor: 1.2
+
+# ORB Extractor: Number of levels in the scale pyramid	
+nLevels: 1
+
+# ORB Extractor: Fast threshold
+# Image is divided in a grid. At each cell FAST are extracted imposing a minimum response.
+# Firstly we impose iniThFAST. If no corners are detected we impose a lower value minThFAST
+# You can lower these values if your images have low contrast			
+iniThFAST: 20
+minThFAST: 3
+
+# feaure setting
+detector: 'ORB'
+discriptor: 'ORB'
+matcher: 'BruteForce-Hamming'
+
+# image match parameters
+check_orientation: true
+
+#debugging parameters
+show_stereo_match: true
+show_frame_match: false
+
+
+
+
+

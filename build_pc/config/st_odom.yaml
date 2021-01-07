@@ -1,0 +1,29 @@
+# Camera Parameters
+fx: 323.451202597659
+fy: 323.451202597659
+cx: 312.227073669434
+cy: 252.058246612549
+bf: 134.10741195432
+rgb: false;
+
+# depth threshold
+thDepth: 35
+
+# feaure setting
+detector: 'FAST'
+discriptor: 'ORB'
+matcher: 'BruteForce-Hamming'
+nFeatures: 600
+scaleFactor: 1.2
+
+# image match parameters
+check_orientation: true
+
+#debugging parameters
+show_stereo_match: false
+show_frame_match: false
+
+
+
+
+

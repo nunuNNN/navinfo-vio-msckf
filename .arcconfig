@@ -1,0 +1,8 @@
+{
+	"phabricator.uri" : "http://172.16.1.123/diffusion/PVVIOMSCKF/pv-vision-vio-msckf.git",
+	"editor": "vim",
+	"base": "git:refs/remotes/origin/develop",
+	"arc.land.onto.default": "develop",
+	"arc.land.update.default": "rebase",
+	"history.immutable": true
+}
