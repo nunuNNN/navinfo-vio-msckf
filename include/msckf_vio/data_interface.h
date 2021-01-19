@@ -119,8 +119,6 @@ typedef struct
 {
     double timestamp;
     cv::Mat left_rect_image;
-    cv::Mat right_rect_image;
-    cv::Mat depth_image;
 } StrImageData;
 
 typedef struct

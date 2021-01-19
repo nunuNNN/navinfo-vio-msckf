@@ -8,6 +8,4 @@ $ catkin_make -j4 && source ./devel/setup.bash && roslaunch msckf_vio ap03.launc
 
 注意：
 
-1. 前视和下视需要修改：global_param.cpp中的flag_start_thread[2] = {false, true}
-
-2. 跑EuRoC需要CMakeLists中打开ADD_DEFINITIONS(-DUSE_EUROC)
+1. 跑EuRoC需要CMakeLists中打开ADD_DEFINITIONS(-DUSE_EUROC)

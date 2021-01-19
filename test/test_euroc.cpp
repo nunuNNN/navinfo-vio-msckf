@@ -321,10 +321,7 @@ void PubImageData()
         }
 
         // send left and right images after rectified, and the depth image
-        VISION_MsckfVio_SendStereoAndDepthImage(dStampNSec,
-                                                left_image_rectified,
-                                                right_image_rectified,
-                                                Mat());
+        VISION_MsckfVio_SendMonoImage(dStampNSec, left_image_rectified);
 
         usleep(100 * 1000);
     }

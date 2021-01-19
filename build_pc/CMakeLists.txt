@@ -45,13 +45,34 @@ message("Eigen is found: ${Eigen_INCLUDE_DIRS}")
 message("OpenCV is found: ${OpenCV_INCLUDE_DIRS}")
 
 include_directories( 
-${PROJECT_SOURCE_DIR}/../include/Initializer
-${PROJECT_SOURCE_DIR}/../include/msckf_vio
-${PROJECT_SOURCE_DIR}/../include/thread_run
-${PROJECT_SOURCE_DIR}/../include
-${Eigen_INCLUDE_DIRS}
-${OpenCV_INCLUDE_DIRS}
-${CERES_INCLUDE_DIRS}
+    ${PROJECT_SOURCE_DIR}/../include/Initializer
+    ${PROJECT_SOURCE_DIR}/../include/msckf_vio
+    ${PROJECT_SOURCE_DIR}/../include/thread_run
+    ${PROJECT_SOURCE_DIR}/../include
+    ${PROJECT_SOURCE_DIR}/../third_party/GeographicLib/include
+    ${PROJECT_SOURCE_DIR}/../include/imu_gps_localizer
+    ${Eigen_INCLUDE_DIRS}
+    ${OpenCV_INCLUDE_DIRS}
+    ${CERES_INCLUDE_DIRS}
+)
+
+# imu gps localization
+# 1. Add GeographicLib.
+add_subdirectory(${PROJECT_SOURCE_DIR}/../third_party/GeographicLib
+    GeographicLib.out
+)
+
+# 2. imu_gps_localizer
+add_library(imu_gps_localizer_lib
+    ${PROJECT_SOURCE_DIR}/../src/imu_gps_localizer/imu_gps_localizer.cpp
+    ${PROJECT_SOURCE_DIR}/../src/imu_gps_localizer/initializer.cpp
+    ${PROJECT_SOURCE_DIR}/../src/imu_gps_localizer/imu_processor.cpp
+    ${PROJECT_SOURCE_DIR}/../src/imu_gps_localizer/gps_processor.cpp
+)
+
+target_link_libraries(imu_gps_localizer_lib
+	${EIGEN3_LIBS}
+    libGeographiccc
 )
 
 # 1. Image processor
@@ -109,6 +130,7 @@ add_library(vio_manager
 target_link_libraries(vio_manager
     estimator
     image_processor
+    imu_gps_localizer_lib
 )
 
 # 5. test euroc

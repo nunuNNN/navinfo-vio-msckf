@@ -247,18 +247,12 @@ void VioManager::PushImu(double timestamp, const Eigen::Vector3d &acc, const Eig
     mutex_imu.unlock();
 }
 
-void VioManager::PushImage(double timestamp, const Mat &left_rect_image,
-                              const Mat &right_rect_image, const Mat &depth_image)
+void VioManager::PushImage(double timestamp, const Mat &left_rect_image)
 {
     StrImageData image_data;
     image_data.timestamp = timestamp;
 
     image_data.left_rect_image = left_rect_image.clone();
-    image_data.right_rect_image = right_rect_image.clone();
-    if (!depth_image.empty())
-    {
-        image_data.depth_image = depth_image.clone();
-    }
 
     mutex_image.lock();
     images_datas.push(image_data);

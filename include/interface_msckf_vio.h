@@ -27,11 +27,14 @@ void VISION_MsckfVio_SendImu(uint64_t timestamp,
                              const Eigen::Vector3d &acc,
                              const Eigen::Vector3d &gyr);
 
-// send left and right images after rectified, and the depth image
-void VISION_MsckfVio_SendStereoAndDepthImage(uint64_t timestamp,
-                                             const cv::Mat &left_image_rectified,
-                                             const cv::Mat &right_image_rectified,
-                                             const cv::Mat &depth_image);
+// send gps data and cov
+void VISION_MsckfVio_SendGps(uint64_t timestamp,
+                             const Eigen::Vector3d &lla,
+                             const Eigen::Matrix3d &cov);
+
+// send left image after rectified,
+void VISION_MsckfVio_SendMonoImage(uint64_t timestamp,
+                            const cv::Mat &left_image_rectified);
 
 // send PVQ from flight control
 void VISION_MsckfVio_SendPVQB(

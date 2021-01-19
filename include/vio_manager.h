@@ -90,15 +90,12 @@ public:
     /********************* push && get data *********************/
     void PushImu(double timestamp, const Eigen::Vector3d &acc, const Eigen::Vector3d &gyr);
 
-    void PushImage(double timestamp, const cv::Mat &left_rect_image,
-                   const cv::Mat &right_rect_image, const cv::Mat &depth_image);
+    void PushImage(double timestamp, const cv::Mat &left_rect_image);
 
     void PushPVQB(double timestamp, const Eigen::Isometry3d &T_world_from_imu,
                     const Eigen::Vector3d &velocity_in_world, 
                     const Eigen::Vector3d &bias_acc,
                     const Eigen::Vector3d &bias_gyr);
-
-    void PushCtrpoint(const double x, const double y, const double z, const double yaw);
 
     bool GetCurrData(StrImageData &curr_str_image, vector<StrImuData> &curr_from_last_imu);
 
