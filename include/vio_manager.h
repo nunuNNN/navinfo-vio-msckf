@@ -4,20 +4,24 @@
 #include <list>
 #include <memory>
 #include <queue>
-#include <thread>
 
 #include <Eigen/Core>
 #include <opencv2/opencv.hpp>
 
 // 线程类
-#include "thread.h"
-#include "condition.h"
+#ifndef USE_ROS_IMSHOW
+#include "thread_run/thread.h"
+#include "thread_run/condition.h"
+#else
+#include <thread>
+#endif
 
 #include "data_interface.h"
 #include "msckf_vio/image_processor.h"
 #include "msckf_vio/msckf_vio.h"
 
 
+#ifndef USE_ROS_IMSHOW
 class ImageProcessorThread : public Thread
 {
 public:    
@@ -57,6 +61,7 @@ private:
     std::shared_ptr<msckf_vio::MsckfVio> p_msckf_vio;
 
 };
+#endif
 
 
 class VioManager
@@ -84,9 +89,10 @@ public:
 
     void ReleaseVioManager();
 
+#ifndef USE_ROS_IMSHOW
     void WaitForVisionThread();
     void NotifyVisionThread();
-
+#endif
     /********************* push && get data *********************/
     void PushImu(double timestamp, const Eigen::Vector3d &acc, const Eigen::Vector3d &gyr);
 
@@ -110,8 +116,13 @@ public:
 private:
     /********************* Singleton Pattern *******************/
     static VioManager* s_pInstance;
+#ifndef USE_ROS_IMSHOW
     cond_locker        vision_locker;
-    
+#endif
+
+    /***********************  ros thread  **********************/
+    void image_processor_thread();
+    void msckf_vio_thread();
 
     /************************ vio data *************************/
     std::queue<StrImageData> images_datas;
@@ -141,8 +152,13 @@ private:
     double last_image_timestamp = -1;
 
     /************************ thread *************************/
+#ifndef USE_ROS_IMSHOW
     std::shared_ptr<ImageProcessorThread> ptr_image_processor_thread;
     std::shared_ptr<MsckfVioThread> ptr_msckf_vio_thread;
+#else
+    std::thread * ptr_image_processor_thread;
+    std::thread * ptr_msckf_vio_thread;
+#endif
 
     /************************ system *************************/
     // vio system

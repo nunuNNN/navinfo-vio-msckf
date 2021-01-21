@@ -8,11 +8,11 @@
 #define _BASE_CONDITION_H_
 
 #include <pthread.h>
-#include <common.h>
-#include <mutex.h>
+#include <thread_run/common.h>
+#include <thread_run/mutex.h>
 #include <sys/time.h>
 #include <stdio.h>
-#include <semaphevent.h>
+#include <thread_run/semaphevent.h>
 
 class Condition
 {

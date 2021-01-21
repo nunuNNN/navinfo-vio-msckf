@@ -16,9 +16,9 @@ using namespace std;
 using namespace Eigen;
 using namespace cv;
 
-string sData_path = "/home/ld/vio_space/navio/dataset/EuRoC/mav0/";
+string sData_path = "/home/ld/vio_space/src/navio_update/dataset/EuRoC/mav0/";
 
-string sConfig_path = "/home/ld/vio_space/navinfo-vio-msckf/build_pc/config/";
+string sConfig_path = "/home/ld/vio_space/src/navinfo-vio-msckf/build_pc/config/";
 string str_file_ground_truth = sConfig_path + "MH_01_ground_truth.txt";
 
 Mat M1l, M2l;

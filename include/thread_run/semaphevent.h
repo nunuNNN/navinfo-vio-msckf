@@ -8,13 +8,12 @@
 #define _BASE_SEMAPHORE_H_
 
 #include <pthread.h>
-#include <common.h>
-#include <mutex.h>
-#include<sys/time.h>
+#include <thread_run/common.h>
+#include <sys/time.h>
 #include <stdio.h>
 #include <stdint.h>
 #include <semaphore.h>
-#include <mutex.h>
+#include <thread_run/mutex.h>
 
 class Semaphore {
 public:

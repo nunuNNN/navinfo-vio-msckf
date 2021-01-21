@@ -8,8 +8,6 @@
 
 #include <Eigen/Core>
 
-#include <sophus/se3.h>
-
 #include "interface_msckf_vio.h"
 
 #include <opencv2/opencv.hpp>
@@ -18,13 +16,12 @@
 
 using namespace std;
 using namespace Eigen;
-using namespace Sophus;
 using namespace cv;
 using namespace ros;
 
-string sData_path = "/home/ld/projects/dataset/EuRoC/mav0/";
+string sData_path = "/home/ld/vio_space/src/navio_update/dataset/EuRoC/mav0/";
 
-string sConfig_path = "/home/ld/projects/pv-vision-vio-msckf/build_pc/config/";
+string sConfig_path = "/home/ld/vio_space/src/navinfo-vio-msckf/build_pc/config/";
 string str_file_ground_truth = sConfig_path + "MH_01_ground_truth.txt";
 
 Mat M1l, M2l;
@@ -54,11 +51,6 @@ double last_publish_time = -1.0;
 Vector3d acc_bias = Vector3d::Zero();
 Vector3d gyr_bias = Vector3d::Zero();
 
-// send PVQ from flight control
-// void VISION_MsckfVio_SendPVQB(
-//     uint64_t timestamp,
-//     const Sophus::SE3 &T_world_from_imu,
-//     const Eigen::Vector3d &velocity_in_world);
 
 void LoadConfigParam()
 {
@@ -207,7 +199,9 @@ void PublishGroundTruth()
                 b_g.x() >> b_g.y() >> b_g.z() >>
                 b_a.x() >> b_a.y() >> b_a.z();
 
-            SE3 T_w_from_b = SE3(q_wb, p_wb);
+            Eigen::Isometry3d T_w_from_b = Eigen::Isometry3d::Identity();
+            T_w_from_b.rotate(q_wb);
+            T_w_from_b.pretranslate(p_wb);
             // cout << "2 PublishGroundTruth " << fixed << timestamp_ns << endl;
             VISION_MsckfVio_SendPVQB(timestamp_ns, T_w_from_b, v_w, b_a, b_g);
 
@@ -217,7 +211,7 @@ void PublishGroundTruth()
     fs_ground_truth.close();
 }
 
-void getInitPose(double timestamp, const string &str_file_ground_truth, double &pose_stamp_out, SE3 &T_w_from_b)
+void getInitPose(double timestamp, const string &str_file_ground_truth, double &pose_stamp_out, Eigen::Isometry3d &T_w_from_b)
 {
     ifstream fs_ground_truth;
     fs_ground_truth.open(str_file_ground_truth.c_str());
@@ -247,7 +241,8 @@ void getInitPose(double timestamp, const string &str_file_ground_truth, double &
 
             if (t <= timestamp)
             {
-                T_w_from_b = SE3(q_wb, p_wb);
+                T_w_from_b.rotate(q_wb);
+                T_w_from_b.pretranslate(p_wb);
             }
             else
             {
@@ -285,8 +280,6 @@ void PubImageData()
 
     // image size
     int width, height;
-
-    SE3 T_w_from_last_b = SE3(Matrix3d::Identity(), Vector3d::Zero());
 
     // namedWindow("SOURCE IMAGE", CV_WINDOW_AUTOSIZE);
     while (std::getline(fsImage, sImage_line) && !sImage_line.empty())
@@ -342,11 +335,7 @@ void PubImageData()
         }
 
         // send left and right images after rectified, and the depth image
-        VISION_MsckfVio_SendStereoAndDepthImage(dStampNSec,
-                                                left_image_rectified,
-                                                right_image_rectified,
-                                                Mat(),
-                                                DownOrForw::Forw);
+        VISION_MsckfVio_SendMonoImage(dStampNSec, left_image_rectified);
 
         usleep(50 * 1000);
         // cvWaitKey(0);
@@ -356,50 +345,42 @@ void PubImageData()
 
 void PublishMsckfVio(
     uint64_t timestamp,
-    const Eigen::Vector3d &v_last_from_curr_in_last_imu,
-    const Eigen::Quaterniond &q_last_imu_from_curr_imu,
+    const Eigen::Vector3d &p,
+    const Eigen::Quaterniond &q,
     float covVx, float covVy, float covVz,
-    uint8_t resetFlag,
-    float harrisVal, float rate1, float rate2)
+    uint8_t resetFlag, float rate1, float rate2)
 {
     // cout << "PublishMsckfVio timestamp: " << fixed << timestamp
     //      << " p: " << v_last_from_curr_in_last_imu.transpose()
     //      << " q: " << q_last_imu_from_curr_imu.coeffs().transpose() << endl;
-    return;
+
     if (last_publish_time < 0)
     {
         last_publish_time = timestamp * 1e-9;
     }
-    q_w_from_b = q_w_from_b * q_last_imu_from_curr_imu;
-
-    //log out
-    double pose_stamp = 0.0;
-    SE3 T_w_from_b = SE3();
-    getInitPose(timestamp, str_file_ground_truth, pose_stamp, T_w_from_b);
-
-    p_world = p_world + T_w_from_b.rotation_matrix() *
-                            v_last_from_curr_in_last_imu *
-                            (timestamp * 1e-9 - last_publish_time);
-
-    Vector3d v_in_world = T_w_from_b.rotation_matrix() * v_last_from_curr_in_last_imu;
-
     of_pose_output << fixed << timestamp
-                   << "," << p_world.x() << "," << p_world.y() << "," << p_world.z()
-                   << "," << q_w_from_b.w()
-                   << "," << q_w_from_b.x()
-                   << "," << q_w_from_b.y()
-                   << "," << q_w_from_b.z()
-                   << "," << v_last_from_curr_in_last_imu.x()
-                   << "," << v_last_from_curr_in_last_imu.y()
-                   << "," << v_last_from_curr_in_last_imu.z()
-                   << "," << gyr_bias.x() << "," << gyr_bias.y() << "," << gyr_bias.z()
-                   << "," << acc_bias.x() << "," << acc_bias.y() << "," << acc_bias.z()
-                   << "," << v_in_world.x()
-                   << "," << v_in_world.y()
-                   << "," << v_in_world.z()
+                   << "," << p.x() 
+                   << "," << p.y()
+                   << "," << p.z()
+                   << "," << q.w()
+                   << "," << q.x()
+                   << "," << q.y()
+                   << "," << q.z()
                    << endl;
     last_publish_time = timestamp * 1e-9;
 }
+
+void PublishPoints(uint64_t timestamp, 
+        const std::vector<int> &curr_init_ids,
+        const std::vector<Eigen::Vector2d> &curr_init_obs,
+        const std::vector<Eigen::Vector3d> &curr_init_pts)
+{
+    // cout << "PublishPoints timestamp: " << fixed << timestamp << endl;
+    // cout << "ids size id : " << curr_init_ids.size() << endl;
+    // cout << "obs size id : " << curr_init_obs.size() << endl;
+    // cout << "pts size id : " << curr_init_pts.size() << endl;
+}
+
 
 int main(int argc, char **argv)
 {
@@ -419,7 +400,7 @@ int main(int argc, char **argv)
     of_pose_output << "timestamp, px, py, pz, qx, qy, qz, qw" << endl;
 
     LoadConfigParam();
-    VISION_MsckfVio_Init(fx, cx, cy, baseline, 0, 0, 0, 0, PublishMsckfVio);
+    VISION_MsckfVio_Init(fx, cx, cy, baseline, PublishMsckfVio, PublishPoints);
 
     thread thd_pub_pose(PublishGroundTruth);
     thd_pub_pose.join();

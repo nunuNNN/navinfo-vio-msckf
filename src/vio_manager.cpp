@@ -28,6 +28,7 @@ void (*CurrInitPtsCallback)(uint64_t timestamp,
                         const std::vector<Eigen::Vector2d> &curr_init_obs,
                         const std::vector<Eigen::Vector3d> &curr_init_pts);
 
+#ifndef USE_ROS_IMSHOW
 ImageProcessorThread::ImageProcessorThread(
     const std::shared_ptr<msckf_vio::ImageProcessor>& p_image_processor)
     :Thread(),p_image_processor(p_image_processor)
@@ -144,7 +145,7 @@ bool MsckfVioThread::run()
     // cout << "t_msckf_vio run time is : " << t_msckf_vio.toc() << endl;
     return true;
 }
-
+#endif
 
 /***************************** vio manager ***************************/
 VioManager::VioManager()
@@ -155,6 +156,7 @@ VioManager::~VioManager()
 {
 }
 
+#ifndef USE_ROS_IMSHOW
 void VioManager::WaitForVisionThread()
 {
     vision_locker.wait();
@@ -164,6 +166,7 @@ void VioManager::NotifyVisionThread()
 {
     vision_locker.broadcast();
 }
+#endif
 
 void VioManager::InitVioManager(void (*PublishVIO)(
                                     uint64_t timestamp,
@@ -191,6 +194,7 @@ void VioManager::InitVioManager(void (*PublishVIO)(
     p_msckf_vio.reset(new msckf_vio::MsckfVio(params_estimste, ex_para));
 
     /************************* thread **************************/
+#ifndef USE_ROS_IMSHOW
     ptr_image_processor_thread = std::make_shared<ImageProcessorThread>(p_image_processor);
     ptr_msckf_vio_thread = std::make_shared<MsckfVioThread>(p_msckf_vio);
 
@@ -200,6 +204,10 @@ void VioManager::InitVioManager(void (*PublishVIO)(
     // start thread
     ptr_image_processor_thread->start();
     ptr_msckf_vio_thread->start();
+#else
+    ptr_image_processor_thread = new std::thread(&VioManager::image_processor_thread, this);
+    ptr_msckf_vio_thread = new std::thread(&VioManager::msckf_vio_thread, this);
+#endif
 }
 
 VioManager* VioManager::getInstance()
@@ -212,10 +220,12 @@ VioManager* VioManager::getInstance()
 
 void VioManager::ReleaseVioManager()
 {
+#ifndef USE_ROS_IMSHOW
     ptr_image_processor_thread->stop();
     ptr_msckf_vio_thread->stop();
 
     vision_locker.broadcast();
+#endif
 
     delete s_pInstance;
 }
@@ -444,3 +454,89 @@ bool VioManager::GetFeaAndImu(Feature_and_PVQB_t &feature_pvq)
 
     return true;
 }
+
+#ifdef USE_ROS_IMSHOW
+void VioManager::image_processor_thread()
+{
+    StrImageData curr_str_image;
+    std::vector<StrImuData> curr_from_last_imu;
+    if (!GetCurrData(curr_str_image,curr_from_last_imu))
+    {
+        usleep(1000);
+        return;
+    }
+
+    double curr_image_timestamp = curr_str_image.timestamp;
+
+    StrPVQB curr_pose_velocity;
+    if (!GetPvqbByTime(curr_image_timestamp, curr_pose_velocity))
+    {
+        usleep(1000);
+        return;
+    }
+
+    TicToc t_image_processor;
+    p_image_processor->monoCallback(curr_image_timestamp, 
+                                    curr_str_image.left_rect_image,
+                                    curr_from_last_imu);
+    
+    msckf_vio::Feature_measure_t curr_features;
+    p_image_processor->featureUpdateCallback(curr_features);
+
+    // cout << "t_image_processor run time is : " << t_image_processor.toc() << endl;
+
+    PushFeaAndImu(curr_image_timestamp, curr_pose_velocity, curr_features, curr_from_last_imu);
+}
+
+void VioManager::msckf_vio_thread()
+{
+    Feature_and_PVQB_t feature_pvq;
+    if (!GetFeaAndImu(feature_pvq))
+    {
+        usleep(1000);
+        return;       
+    }
+
+    TicToc t_msckf_vio;
+
+    double curr_image_timestamp = feature_pvq.curr_time;
+
+    msckf_vio::Feature_measure_t measure = feature_pvq.curr_features;
+    msckf_vio::Ground_truth_t groundtruth;
+    groundtruth.bias_acc            = feature_pvq.curr_pvqb.bias_acc;
+    groundtruth.bias_gyr            = feature_pvq.curr_pvqb.bias_gyr;
+    groundtruth.T_vel.v_in_world    = feature_pvq.curr_pvqb.v_in_world;
+    groundtruth.T_vel.T_w_b = feature_pvq.curr_pvqb.T_world_from_imu;
+    msckf_vio::Translation_velocity_t T_vel_out;
+
+    p_msckf_vio->Process(curr_image_timestamp, 
+                            measure,
+                            feature_pvq.curr_from_last_imu,
+                            groundtruth, 
+                            T_vel_out);
+
+    Eigen::Quaterniond q_imu_f_world = Quaterniond(T_vel_out.T_w_b.linear()).normalized();
+    Eigen::Vector3d p_in_world = T_vel_out.T_w_b.translation();
+    Eigen::Vector3d v_in_world = T_vel_out.v_in_world;
+    Eigen::Vector3d v_in_body = T_vel_out.T_w_b.linear().transpose() * v_in_world;
+
+    PublishCallbackVio(curr_image_timestamp * 1e9, p_in_world, q_imu_f_world, 
+                        v_in_body.x(), v_in_body.y(), v_in_body.z(), 0, 0, 0);
+
+    // 得到当前帧跟踪上已经完成初始化的点
+    std::vector<int> curr_init_ids;
+    std::vector<Eigen::Vector2d> curr_init_obs;
+    std::vector<Eigen::Vector3d> curr_init_pts;
+    
+    if(p_msckf_vio->currFeatureInitCallback(curr_init_ids,
+                                        curr_init_obs,
+                                        curr_init_pts))
+    {
+        // TODO : 判断得到的三个变量长度是否相等
+
+        CurrInitPtsCallback(curr_image_timestamp * 1e9, curr_init_ids,
+                            curr_init_obs, curr_init_pts);
+    }
+    
+}
+#endif
