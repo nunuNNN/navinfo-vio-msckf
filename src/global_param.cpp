@@ -18,24 +18,35 @@ msckf_vio::Parameter_estimate_t params_estimste;
 
 void InitParams(double f_forw, double cx_forw, double cy_forw)
 {
-    /*********** 初始化相机参数(内参) ***********/
+    /*********** 初始化相机参数 ***********/
     params_camera.m_f = f_forw;
     params_camera.m_cx = cx_forw;
     params_camera.m_cy = cy_forw;
 
+    Eigen::Matrix3d R_cam0_imu_f; 
+    Eigen::Vector3d t_cam0_imu_f;
+
+#ifdef USE_EUROC
     params_camera.m_k1 = -0.28340811;
     params_camera.m_k2 = 0.07395907;
     params_camera.m_p1 = 0.00019359;
     params_camera.m_p2 = 1.76187114e-05;
 
-     /*********** 初始化imu相机的外参数 ***********/
-    Eigen::Matrix3d R_cam0_imu_f; 
-    Eigen::Vector3d t_cam0_imu_f;
     R_cam0_imu_f << 0.014865542981794,   0.999557249008346,  -0.025774436697440,
                     -0.999880929698575,   0.014967213324719,   0.003756188357967,
                     0.004140296794224,   0.025715529947966,   0.999660727177902;
     t_cam0_imu_f << 0.065222909535531, -0.020706385492719, -0.008054602460030;
+#else
+    params_camera.m_k1 = -9.6679142430753318e-02;
+    params_camera.m_k2 = 1.5757595484965237e-01;
+    params_camera.m_p1 = 8.0908499076880712e-05;
+    params_camera.m_p2 = 3.3378387648097396e-01;
 
+    R_cam0_imu_f << 0.9999, 0.00137584, 0.0140771,
+                    -0.0140103, -0.0402652, 0.999091,
+                    0.00194141, -0.999188, -0.0402419;
+    t_cam0_imu_f << 0.147, 1.049, 1.245;
+#endif
     T_cam0_from_imu = Eigen::Isometry3d::Identity();
     T_cam0_from_imu.rotate(R_cam0_imu_f);
     T_cam0_from_imu.pretranslate(t_cam0_imu_f);

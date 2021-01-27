@@ -1,0 +1,25 @@
+%YAML:1.0
+
+#--------------------------------------------------------------------------------------------
+# Camera Parameters. Adjust them!
+#--------------------------------------------------------------------------------------------
+
+# Camera calibration and distortion parameters (OpenCV) 
+Camera.fx: 1.5864020553544849e+03
+Camera.fy: 1.5864020553544849e+03
+Camera.cx: 9.7579535879871764e+02
+Camera.cy: 6.0473708065347023e+02
+
+Camera.k1: -9.6679142430753318e-02
+Camera.k2: 1.5757595484965237e-01
+Camera.p1: 8.5333935778010477e-05
+Camera.p2: 8.0908499076880712e-05
+
+Camera.width: 1920
+Camera.height: 1200
+
+# Camera frames per second 
+Camera.fps: 20.0
+
+# Color order of the images (0: BGR, 1: RGB. It is ignored if images are grayscale)
+Camera.RGB: 1

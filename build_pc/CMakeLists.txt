@@ -141,3 +141,11 @@ target_link_libraries(test_euroc
     -lpthread
 )
 
+add_executable(test_navinfo
+    ${PROJECT_SOURCE_DIR}/../test/test_navinfo.cpp 
+)
+target_link_libraries(test_navinfo
+    vio_manager
+    -lpthread
+)
+
