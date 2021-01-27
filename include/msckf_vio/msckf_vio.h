@@ -50,7 +50,7 @@ public:
 
     // Constructor
     MsckfVio(const Parameter_estimate_t &estimste_params,
-            const Parameter_extrinsic_t &extrinsic_params);
+            const Eigen::Isometry3d &T_cam0_from_imu);
     // Disable copy and assign constructor
     MsckfVio(const MsckfVio &) = delete;
     MsckfVio operator=(const MsckfVio &) = delete;
@@ -65,7 +65,7 @@ public:
                 Translation_velocity_t &T_vel_out);
 
     bool resetCallback(const Parameter_estimate_t &estimste_params,
-                            const Parameter_extrinsic_t &extrinsic_params);
+                            const Eigen::Isometry3d &T_cam0_from_imu);
 
     bool currFeatureInitCallback(std::vector<int> &init_ids,
                         std::vector<Eigen::Vector2d> &init_obs,
@@ -73,7 +73,7 @@ public:
 
 private:
     bool InitStaticParams(const Parameter_estimate_t &estimste_params,
-                        const Parameter_extrinsic_t &extrinsic_params);
+                        const Eigen::Isometry3d &T_cam0_from_imu);
 
     void InitPVQBAndCov();
 

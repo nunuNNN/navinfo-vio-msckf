@@ -13,7 +13,7 @@ extern bool flag_thread_start[2];
 extern msckf_vio::Processor_config_t processor_config;
 extern msckf_vio::Parameter_estimate_t params_estimste;
 
-extern Parameter_extrinsic_t params_extrinsic;
+extern Eigen::Isometry3d T_cam0_from_imu;
 extern Parameter_camera_t params_camera;
 
-void InitParams(double f_forw, double cx_forw, double cy_forw, double baseline_forw);
+void InitParams(double f_forw, double cx_forw, double cy_forw);

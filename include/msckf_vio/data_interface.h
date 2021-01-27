@@ -91,17 +91,7 @@ typedef struct
 
 } // namespace msckf_vio
 
-//1. 相机的内参与外参数
-typedef struct
-{
-    // transform left camera from imu
-    Eigen::Isometry3d T_cam0_from_imu;
-    // transform right camera from imu
-    Eigen::Isometry3d T_cam1_from_imu;
-    // transform camera1 from camera0(camera0 is left came)
-    Eigen::Isometry3d T_cam1_form_cam0;
-} Parameter_extrinsic_t;
-
+//1. 相机的内参
 typedef struct
 {
     double m_f;
@@ -109,8 +99,11 @@ typedef struct
     double m_cx;
     // center y
     double m_cy;
-    // base line
-    double m_baseline;
+
+    double m_k1;
+    double m_k2;
+    double m_p1;
+    double m_p2;
 } Parameter_camera_t;
 
 

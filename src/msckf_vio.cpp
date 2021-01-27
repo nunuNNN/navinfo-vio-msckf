@@ -35,7 +35,7 @@ Feature::OptimizationConfig Feature::optimization_config;
 map<int, double> MsckfVio::chi_squared_test_table;
 
 MsckfVio::MsckfVio(const Parameter_estimate_t &estimste_params,
-            const Parameter_extrinsic_t &extrinsic_params)
+            const Eigen::Isometry3d &T_cam0_from_imu)
     : is_first_img(true), b_init_finish(false)
 {
     #ifdef USE_ROS_IMSHOW
@@ -46,13 +46,13 @@ MsckfVio::MsckfVio(const Parameter_estimate_t &estimste_params,
         mocap_odom_pub = nh.advertise<nav_msgs::Odometry>("/firefly_sbx/vio/gt_odom", 1);
     #endif
 
-    InitStaticParams(estimste_params, extrinsic_params);
+    InitStaticParams(estimste_params, T_cam0_from_imu);
 
     return;
 }
 
 bool MsckfVio::InitStaticParams(const Parameter_estimate_t &estimste_params,
-                        const Parameter_extrinsic_t &extrinsic_params)
+                        const Eigen::Isometry3d &T_cam0_from_imu)
 {
     // The position uncertainty threshold is used to determine
     position_std_threshold = estimste_params.position_std_threshold;
@@ -99,7 +99,7 @@ bool MsckfVio::InitStaticParams(const Parameter_estimate_t &estimste_params,
     }
 
     // Transformation offsets between the frames involved.
-    Eigen::Isometry3d T_imu_from_cam0 = extrinsic_params.T_cam0_from_imu.inverse();
+    Eigen::Isometry3d T_imu_from_cam0 = T_cam0_from_imu.inverse();
     state_server.imu_state.R_cam0_from_imu = T_imu_from_cam0.linear().transpose();
     state_server.imu_state.t_imu_from_cam0 = T_imu_from_cam0.translation();
 
@@ -1100,7 +1100,7 @@ void MsckfVio::onlineReset()
 
 // 后端切换函数,需要清除之前的状态,外参数重置
 bool MsckfVio::resetCallback(const Parameter_estimate_t &estimste_params,
-                            const Parameter_extrinsic_t &extrinsic_params) 
+                            const Eigen::Isometry3d &T_cam0_from_imu) 
 {
     // Remove all existing camera states.
     state_server.cam_states.clear();
@@ -1108,7 +1108,7 @@ bool MsckfVio::resetCallback(const Parameter_estimate_t &estimste_params,
     // Clear all exsiting features in the map.
     map_server.clear();
 
-    InitStaticParams(estimste_params, extrinsic_params);
+    InitStaticParams(estimste_params, T_cam0_from_imu);
 
     b_init_finish = false;
 

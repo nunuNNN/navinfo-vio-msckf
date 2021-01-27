@@ -46,15 +46,15 @@ bool ImageProcessor::initialize()
     cam0_intrinsics[2] = params_camera.m_cx;
     cam0_intrinsics[3] = params_camera.m_cy;
 
-    cam0_distortion_coeffs[0] = 0;
-    cam0_distortion_coeffs[1] = 0;
-    cam0_distortion_coeffs[2] = 0;
-    cam0_distortion_coeffs[3] = 0;
+    cam0_distortion_coeffs[0] = params_camera.m_k1;
+    cam0_distortion_coeffs[1] = params_camera.m_k2;
+    cam0_distortion_coeffs[2] = params_camera.m_p1;
+    cam0_distortion_coeffs[3] = params_camera.m_p2;
 
     // Eigen::Isometry3d -> opencv -- Transform cam0 frames with imu frames.
-    Eigen::Matrix3d R_imu_from_cam0_e = params_extrinsic.T_cam0_from_imu.linear().transpose();
+    Eigen::Matrix3d R_imu_from_cam0_e = T_cam0_from_imu.linear().transpose();
     // eigen2cv(R_imu_from_cam0_e, R_imu_from_cam0);
-    Eigen::Vector3d t_imu_from_cam0_e = params_extrinsic.T_cam0_from_imu.inverse().translation();
+    Eigen::Vector3d t_imu_from_cam0_e = T_cam0_from_imu.inverse().translation();
     // eigen2cv(t_imu_from_cam0_e, t_imu_from_cam0);
     for (int i=0; i<3; i++)
     {

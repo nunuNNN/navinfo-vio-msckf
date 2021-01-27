@@ -344,7 +344,7 @@ void PubImageData()
 }
 
 void PublishMsckfVio(
-    uint64_t timestamp,
+    double timestamp,
     const Eigen::Vector3d &p,
     const Eigen::Quaterniond &q,
     float covVx, float covVy, float covVz,
@@ -356,7 +356,7 @@ void PublishMsckfVio(
 
     if (last_publish_time < 0)
     {
-        last_publish_time = timestamp * 1e-9;
+        last_publish_time = timestamp;
     }
     of_pose_output << fixed << timestamp
                    << "," << p.x() 
@@ -367,10 +367,10 @@ void PublishMsckfVio(
                    << "," << q.y()
                    << "," << q.z()
                    << endl;
-    last_publish_time = timestamp * 1e-9;
+    last_publish_time = timestamp;
 }
 
-void PublishPoints(uint64_t timestamp, 
+void PublishPoints(double timestamp, 
         const std::vector<int> &curr_init_ids,
         const std::vector<Eigen::Vector2d> &curr_init_obs,
         const std::vector<Eigen::Vector3d> &curr_init_pts)
