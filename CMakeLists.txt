@@ -7,7 +7,7 @@ add_compile_options(-std=c++11)
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_CURRENT_LIST_DIR}/cmake")
 set(CMAKE_BUILD_TYPE Release)
 
-ADD_DEFINITIONS(-DUSE_EUROC)
+# ADD_DEFINITIONS(-DUSE_EUROC)
 ADD_DEFINITIONS(-DUSE_DATASET)
 ADD_DEFINITIONS(-DUSE_ROS_IMSHOW)
 ADD_DEFINITIONS(-DUSING_SPARSE_QR)
@@ -133,7 +133,12 @@ LIST(APPEND LINK_LIBS
   ${SUITESPARSE_LIBRARIES}
 )
 
-add_executable(ros_euroc test/ros_euroc.cpp ${SOURCEFILES}  )
-target_link_libraries(ros_euroc ${LINK_LIBS} -lpthread )
-add_dependencies(ros_euroc ${catkin_EXPORTED_TARGETS})
-add_dependencies(ros_euroc ${PROJECT_NAME}_gencpp)
+# add_executable(ros_euroc test/ros_euroc.cpp ${SOURCEFILES}  )
+# target_link_libraries(ros_euroc ${LINK_LIBS} -lpthread )
+# add_dependencies(ros_euroc ${catkin_EXPORTED_TARGETS})
+# add_dependencies(ros_euroc ${PROJECT_NAME}_gencpp)
+
+add_executable(ros_navinfo test/ros_navinfo.cpp ${SOURCEFILES}  )
+target_link_libraries(ros_navinfo ${LINK_LIBS} -lpthread )
+add_dependencies(ros_navinfo ${catkin_EXPORTED_TARGETS})
+add_dependencies(ros_navinfo ${PROJECT_NAME}_gencpp)

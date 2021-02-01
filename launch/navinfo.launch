@@ -1,6 +1,6 @@
 <launch>
 
-  <node pkg="msckf_vio" type="ros_ap03" name="ros_ap03" output="screen" >        
+  <node pkg="msckf_vio" type="ros_navinfo" name="ros_navinfo" output="screen" >        
   </node>
 
   <node pkg="rviz" type="rviz" name="rviz" 

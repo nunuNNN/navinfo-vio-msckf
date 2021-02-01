@@ -54,8 +54,8 @@ void InitParams(double f_forw, double cx_forw, double cy_forw)
 
     /****** 初始化前端参数(特征提取及匹配) ******/
     // Image Processor parameters
-    processor_config.grid_row = 8;
-    processor_config.grid_col = 6;
+    processor_config.grid_row = 10;
+    processor_config.grid_col = 16;
     processor_config.grid_min_feature_num = 2;
     processor_config.grid_max_feature_num = 4;
     processor_config.pyramid_levels = 3;

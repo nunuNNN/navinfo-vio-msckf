@@ -12,9 +12,13 @@
 
 #include <opencv2/opencv.hpp>
 
+#include <ros/ros.h>
+
 using namespace std;
 using namespace Eigen;
 using namespace cv;
+using namespace ros;
+
 
 string sData_path = "/home/ld/Downloads/dataset/navinfo/";
 string sConfig_path = "/home/ld/vio_space/src/navinfo-vio-msckf/build_pc/config/";
@@ -32,7 +36,6 @@ Quaterniond q_w_from_b = Quaterniond::Identity();
 ofstream of_pose_output;
 
 double last_publish_time = -1.0;
-
 
 void LoadConfigParam()
 {
@@ -125,7 +128,7 @@ void PubImageData()
         std::istringstream ssImuData(sImage_line);
         ssImuData >> dStampNSec >> sImgFileName;
         // cout << "Image t : " << fixed << dStampNSec << " Name: " << sImgFileName << endl;
-        if (dStampNSec < 1294562481290)
+        if (dStampNSec < 1294562481790)
         {
             continue;
         }
@@ -180,6 +183,7 @@ void PubImageData()
     fsImage.close();
 }
 
+
 void PublishMsckfVio(
     double timestamp,
     const Eigen::Vector3d &p,
@@ -219,20 +223,16 @@ void PublishPoints(double timestamp,
 }
 
 
-int main()
+int main(int argc, char **argv)
 {
     cout << "1 main..." << endl;
+    init(argc, argv, "STEREO_VO");
+    console::set_logger_level(ROSCONSOLE_DEFAULT_NAME, console::levels::Debug);
 
-    cpu_set_t mask;
-    unsigned long cpuid = 2;
-    CPU_ZERO(&mask);
-    CPU_SET(cpuid, &mask);
-    if (sched_setaffinity(0, sizeof(cpu_set_t), &mask) < 0)
-    {
-        perror("sched_setaffinity err:");
-    }
+    start();
+    NodeHandle nh("~");
 
-    of_pose_output.open("./publish_pose.txt", ios::out | ios::trunc);
+    of_pose_output.open("/home/ld/publish_pose.txt", ios::out | ios::trunc);
     if (!of_pose_output.is_open())
     {
         cerr << "of_pose_output is not open!" << endl;
@@ -242,7 +242,6 @@ int main()
 
     LoadConfigParam();
     VISION_MsckfVio_Init(fx, cx, cy, PublishMsckfVio, PublishPoints);
-
 
     std::thread thd_PubImuData(PubImuData);
     thd_PubImuData.join();
@@ -257,8 +256,9 @@ int main()
         sleep(5);
         cout << "--------------------------------------------" << endl;
     }
-
     VISION_MsckfVio_Stop();
     of_pose_output.close();
+
+    spin();
     return 0;
 }

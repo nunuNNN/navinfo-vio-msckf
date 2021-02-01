@@ -412,11 +412,11 @@ void ImageProcessor::trackFeatures()
         curr_feature_num += item.second.size();
     }
 
-    // printf("\033[0;32m candidates: %d; raw track: %d; stereo match: %d; ransac: %d/%d=%f\033[0m\n",
-    //        before_tracking, after_tracking, after_matching,
-    //        curr_feature_num, prev_feature_num,
-    //        static_cast<double>(curr_feature_num) /
-    //            (static_cast<double>(prev_feature_num) + 1e-5));
+    printf("\033[0;32m candidates: %d; raw track: %d; after ransac: %d; ransac: %d/%d=%f\033[0m\n",
+           before_tracking, after_tracking, after_ransac,
+           curr_feature_num, prev_feature_num,
+           static_cast<double>(curr_feature_num) /
+               (static_cast<double>(prev_feature_num) + 1e-5));
 
     return;
 }
@@ -1082,7 +1082,7 @@ void ImageProcessor::drawFeaturesMono()
             cv::Point2f prev_pt0 = prev_cam0_points[id];
             cv::Point2f curr_pt0 = curr_cam0_points[id];
 
-            circle(out_img, curr_pt0, 3, tracked, -1);
+            circle(out_img, curr_pt0, 5, tracked, -1);
             line(out_img, prev_pt0, curr_pt0, tracked, 1);
 
             prev_cam0_points.erase(id);
@@ -1094,7 +1094,7 @@ void ImageProcessor::drawFeaturesMono()
     for (const auto &new_cam0_point : curr_cam0_points)
     {
         cv::Point2f pt0 = new_cam0_point.second;
-        circle(out_img, pt0, 3, new_feature, -1);
+        circle(out_img, pt0, 5, new_feature, -1);
     }
 
 #ifdef USE_ROS_IMSHOW

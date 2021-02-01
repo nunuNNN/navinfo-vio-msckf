@@ -13,11 +13,7 @@
 #include <Eigen/Dense>
 #include <Eigen/Geometry>
 
-#ifdef USE_EUROC
 #define GRAVITY_ACCELERATION 9.81
-#else
-#define GRAVITY_ACCELERATION -9.81
-#endif
 
 namespace msckf_vio
 {
